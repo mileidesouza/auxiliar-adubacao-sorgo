@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auxiliar Adubação Sorgo</title>
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: formulário à esquerda, resultado fixo à direita no desktop; empilhado no celular. */
+:root{
+  --bg:#EFF3EC; --surface:#FFFFFF; --surface2:#E4EBDF; --fg:#17261D; --muted:#566559;
+  --line:#CBD6C6; --accent:#2D6A3E; --accent-fg:#FFFFFF; --grain:#A8561E; --warn-bg:#FBEBD3; --warn-fg:#6B3A08;
+  --f-display:"Bricolage Grotesque","Segoe UI",sans-serif; --f-body:"IBM Plex Sans","Segoe UI",sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1812; --surface:#17241C; --surface2:#1F3026; --fg:#E7EFE4; --muted:#9DB0A2; --line:#2C4034;
+  --accent:#6FC287; --accent-fg:#0B1A10; --grain:#E59A5E; --warn-bg:#3A2A12; --warn-fg:#F2CFA0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1812; --surface:#17241C; --surface2:#1F3026; --fg:#E7EFE4; --muted:#9DB0A2; --line:#2C4034;
+  --accent:#6FC287; --accent-fg:#0B1A10; --grain:#E59A5E; --warn-bg:#3A2A12; --warn-fg:#F2CFA0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto}
+header{margin-bottom:20px}
+h1{font:700 clamp(26px,4.5vw,38px)/1.1 var(--f-display);margin:0 0 6px;letter-spacing:-.01em;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+section.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+h2{font:600 13px/1.2 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:480px){.row{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+input,select{font:500 15px var(--f-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:500 14px var(--f-body);background:var(--bg);color:var(--fg);border:0;border-right:1px solid var(--line);padding:9px 6px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field>span{font-size:13px;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+.yield-eq{font:400 13px var(--f-mono);color:var(--grain)}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+details[open] summary{margin-bottom:12px}
+.results{position:sticky;top:12px}
+@media(max-width:860px){.results{position:static}}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{background:var(--surface2);border-radius:8px;padding:12px}
+.tile .k{font:500 12px var(--f-mono);color:var(--muted)}
+.tile .v{font:700 clamp(26px,5vw,34px)/1.1 var(--f-display);font-variant-numeric:tabular-nums;margin-top:4px}
+.tile .u{font-size:12px;color:var(--muted)}
+.tile.p .v{color:var(--grain)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}
+.plan{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.warn{background:var(--warn-bg);color:var(--warn-fg);border-radius:8px;padding:10px 12px;font-size:13px;margin-top:12px}
+.warn[hidden]{display:none}
+.memo td:first-child{color:var(--muted)}
+.foot{font-size:12px;color:var(--muted);margin-top:20px;max-width:80ch}
+</style>
+
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Auxiliar de Adubação do Sorgo</h1>
+  <p>Informe a produtividade esperada, o tipo de solo e o que ficou da 1ª safra. A calculadora estima N, P₂O₅ e K₂O e converte em quilos de adubo por hectare.</p>
+</header>
+
+<div class="grid">
+<div class="stack">
+
+<section class="panel">
+  <h2>Meta de produtividade</h2>
+  <div class="row">
+    <label>Produtividade esperada
+      <input id="yield" type="number" inputmode="decimal" min="0" step="1" value="80">
+    </label>
+    <label>Unidade
+      <select id="yunit"><option value="sc">sacas de 60 kg/ha</option><option value="t">t/ha</option></select>
+    </label>
+  </div>
+  <p class="hint yield-eq" id="yeq"></p>
+  <div class="row" style="margin-top:12px">
+    <label>Área a adubar (ha)
+      <input id="area" type="number" inputmode="decimal" min="0" step="1" value="100">
+    </label>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Condição da área</h2>
+  <div class="stack">
+    <div class="field"><span>Fertilidade do solo</span>
+      <div class="seg" data-key="fert">
+        <button type="button" data-v="baixa" aria-pressed="false">Baixa</button>
+        <button type="button" data-v="media" aria-pressed="true">Média</button>
+        <button type="button" data-v="alta" aria-pressed="false">Alta</button>
+      </div></div>
+    <div class="field"><span>Textura do solo</span>
+      <div class="seg" data-key="tex">
+        <button type="button" data-v="arenosa" aria-pressed="false">Arenosa</button>
+        <button type="button" data-v="siltosa" aria-pressed="false">Siltosa</button>
+        <button type="button" data-v="argilosa" aria-pressed="true">Argilosa</button>
+      </div></div>
+    <div class="field"><span>Idade da área</span>
+      <div class="seg" data-key="age">
+        <button type="button" data-v="nova" aria-pressed="false">Área nova</button>
+        <button type="button" data-v="velha" aria-pressed="true">Área velha</button>
+      </div></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>O que ficou da 1ª safra</h2>
+  <div class="row">
+    <label>Cultura da 1ª safra
+      <select id="prev">
+        <option value="30">Soja</option>
+        <option value="10">Algodão</option>
+        <option value="0">Milho</option>
+        <option value="0">Outra / pousio</option>
+      </select>
+    </label>
+    <span></span>
+    <label>P₂O₅ aplicado na 1ª safra (kg/ha)
+      <input id="p1" type="number" inputmode="decimal" min="0" value="90">
+    </label>
+    <label>K₂O aplicado na 1ª safra (kg/ha)
+      <input id="k1" type="number" inputmode="decimal" min="0" value="80">
+    </label>
+    <label>Fração residual de P₂O₅ (%)
+      <input id="pres" type="number" inputmode="decimal" min="0" max="100" value="25">
+    </label>
+    <label>Fração residual de K₂O (%)
+      <input id="kres" type="number" inputmode="decimal" min="0" max="100" value="15">
+    </label>
+  </div>
+  <p class="hint">Residual é a parte do adubo da 1ª safra que sobrou disponível para o sorgo. Para usar o saldo de uma análise de solo, preencha os campos abaixo e eles substituem o cálculo acima.</p>
+  <div class="row" style="margin-top:10px">
+    <label>Saldo de P₂O₅ medido (kg/ha, opcional)
+      <input id="pman" type="number" inputmode="decimal" min="0" placeholder="vazio = calcular">
+    </label>
+    <label>Saldo de K₂O medido (kg/ha, opcional)
+      <input id="kman" type="number" inputmode="decimal" min="0" placeholder="vazio = calcular">
+    </label>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Fontes de adubo</h2>
+  <div class="row">
+    <label>Fonte de P₂O₅
+      <select id="psrc">
+        <option value="52|11">MAP (52% P₂O₅ · 11% N)</option>
+        <option value="46|0">Superfosfato triplo (46% P₂O₅)</option>
+        <option value="18|0">Superfosfato simples (18% P₂O₅)</option>
+      </select>
+    </label>
+    <label>Fonte de K₂O
+      <select id="ksrc"><option value="60">Cloreto de potássio (60% K₂O)</option></select>
+    </label>
+    <label>Fonte de N
+      <select id="nsrc">
+        <option value="45">Ureia (45% N)</option>
+        <option value="21">Sulfato de amônio (21% N)</option>
+        <option value="32">Nitrato de amônio (32% N)</option>
+      </select>
+    </label>
+  </div>
+</section>
+
+<section class="panel">
+  <details>
+    <summary>Extração e parâmetros (editável)</summary>
+    <p class="hint" style="margin-top:0">Extração e exportação por tonelada de grão, conforme o slide (adaptado de Resende et al., 2022). O aproveitamento do adubo e o acréscimo para fertilidade baixa são valores de referência e podem ser ajustados.</p>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>Nutriente</th><th class="n">Extração<br>kg/t grão</th><th class="n">Exportação<br>kg/t grão</th><th class="n">Aproveit.<br>do adubo</th><th class="n">Acréscimo fert. baixa<br>kg/ha</th></tr></thead>
+      <tbody>
+        <tr><td>N</td><td class="n"><input id="eN" type="number" step="0.1" value="20.3"></td><td class="n"><input id="xN" type="number" step="0.1" value="14.5"></td><td class="n"><input id="fN" type="number" step="0.01" value="0.65"></td><td class="n">–</td></tr>
+        <tr><td>P₂O₅</td><td class="n"><input id="eP" type="number" step="0.1" value="6"></td><td class="n"><input id="xP" type="number" step="0.1" value="5"></td><td class="n"><input id="fP" type="number" step="0.01" value="0.50"></td><td class="n"><input id="bP" type="number" step="1" value="40"></td></tr>
+        <tr><td>K₂O</td><td class="n"><input id="eK" type="number" step="0.1" value="23.9"></td><td class="n"><input id="xK" type="number" step="0.1" value="3.5"></td><td class="n"><input id="fK" type="number" step="0.01" value="0.80"></td><td class="n"><input id="bK" type="number" step="1" value="30"></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+</section>
+
+</div>
+
+<div class="stack results">
+  <section class="panel">
+    <h2>Adubação recomendada</h2>
+    <div class="tiles">
+      <div class="tile"><div class="k">N</div><div class="v" id="rN">–</div><div class="u">kg/ha</div></div>
+      <div class="tile p"><div class="k">P₂O₅</div><div class="v" id="rP">–</div><div class="u">kg/ha</div></div>
+      <div class="tile"><div class="k">K₂O</div><div class="v" id="rK">–</div><div class="u">kg/ha</div></div>
+    </div>
+    <div class="warn" id="warn" hidden></div>
+  </section>
+
+  <section class="panel">
+    <h2>Produtos comerciais</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Produto</th><th class="n">kg/ha</th><th class="n">Total na área</th></tr></thead>
+      <tbody id="prod"></tbody>
+    </table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Como aplicar</h2>
+    <ol class="plan" id="plan"></ol>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>Memória de cálculo</summary>
+      <div class="scroll"><table class="memo"><tbody id="memo"></tbody></table></div>
+    </details>
+  </section>
+</div>
+</div>
+
+<p class="foot">Extração e exportação: Resende et al., Revista Brasileira de Milho e Sorgo, 2022. O sorgo absorve a maior parte dos nutrientes até o florescimento (N 83%, P₂O₅ 100%, K₂O 80%), por isso o adubo deve ir cedo. Ferramenta de apoio ao planejamento. Os fatores de textura, fertilidade e área nova são valores de referência de uso geral e devem ser confirmados com a recomendação regional e o agrônomo responsável, com base na análise de solo da área.</p>
+</div>
+
+<script>
+(function(){
+  var S={fert:"media",tex:"argilosa",age:"velha"};
+  // P e K: alta = repõe só a exportação; média = exportação + 50% do que a planta recicla (extração − exportação); baixa = extração total + acréscimo de construção
+  function need(ext,exp,fert){return fert==="baixa"?ext:fert==="media"?exp+0.5*(ext-exp):exp}
+  var NSOIL={baixa:0.30,media:0.45,alta:0.55};     // parte do N fornecida pelo solo (matéria orgânica)
+  var TEX={arenosa:{N:0.85,P:1.10,K:0.85},siltosa:{N:1.0,P:1.0,K:1.0},argilosa:{N:1.0,P:0.90,K:1.0}};
+  var AGE={nova:{P:0.85},velha:{P:1.0}};
+  var $=function(id){return document.getElementById(id)};
+  var num=function(id){var v=parseFloat($(id).value);return isFinite(v)&&v>0?v:0};
+  var blank=function(id){return $(id).value.trim()===""};
+  var f0=function(x){return Math.round(x).toLocaleString("pt-BR")};
+  var f1=function(x){return x.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})};
+
+  function calc(){
+    var y=num("yield"), unit=$("yunit").value;
+    var t=unit==="sc"?y*60/1000:y;
+    $("yeq").textContent= unit==="sc" ? "= "+f1(t)+" t/ha" : "= "+f0(t*1000/60)+" sacas de 60 kg/ha";
+    var area=num("area");
+    var tx=TEX[S.tex], ag=AGE[S.age];
+
+    // Nitrogênio
+    var needN=num("eN")*t;
+    var soilN=needN*NSOIL[S.fert];
+    var effN=num("fN")*tx.N;
+    var credPrev=parseFloat($("prev").value)||0;
+    var N=effN>0?(needN-soilN)/effN-credPrev:0;
+    // Fósforo
+    var needP=need(num("eP")*t,num("xP")*t,S.fert);
+    var buildP=S.fert==="baixa"?num("bP"):0;
+    var effP=num("fP")*tx.P*ag.P;
+    var resP=blank("pman")?num("p1")*num("pres")/100:num("pman");
+    var P=effP>0?needP/effP+buildP-resP:0;
+    // Potássio
+    var needK=need(num("eK")*t,num("xK")*t,S.fert);
+    var buildK=S.fert==="baixa"?num("bK"):0;
+    var effK=num("fK")*tx.K;
+    var resK=blank("kman")?num("k1")*num("kres")/100:num("kman");
+    var K=effK>0?needK/effK+buildK-resK:0;
+    N=Math.max(0,N);P=Math.max(0,P);K=Math.max(0,K);
+
+    // Produtos
+    var ps=$("psrc").value.split("|"), pPct=+ps[0]/100, pN=+ps[1]/100;
+    var kPct=+$("ksrc").value/100, nPct=+$("nsrc").value/100;
+    var pProd=pPct?P/pPct:0, kProd=kPct?K/kPct:0;
+    var nFromP=pProd*pN;
+    var nRem=Math.max(0,N-nFromP);
+    var nProd=nPct?nRem/nPct:0;
+
+    $("rN").textContent=f0(N);$("rP").textContent=f0(P);$("rK").textContent=f0(K);
+
+    var pName=$("psrc").selectedOptions[0].text.split(" (")[0];
+    var kName=$("ksrc").selectedOptions[0].text.split(" (")[0];
+    var nName=$("nsrc").selectedOptions[0].text.split(" (")[0];
+    var tot=function(kg){var s=kg*area;return s>=1000?f1(s/1000)+" t":f0(s)+" kg"};
+    var rows=[[pName,pProd],[kName,kProd],[nName,nProd]];
+    $("prod").innerHTML=rows.map(function(r){return "<tr><td>"+r[0]+"</td><td class='n'>"+f0(r[1])+"</td><td class='n'>"+tot(r[1])+"</td></tr>"}).join("");
+
+    // Parcelamento
+    var kSow=Math.min(K,S.tex==="arenosa"?40:60), kCov=K-kSow;
+    var nSow=Math.min(nRem,30), nCov=nRem-nSow;
+    var plan=[];
+    plan.push("<b>Semeadura:</b> "+f0(pProd)+" kg/ha de "+pName+" ("+f0(P)+" kg P₂O₅) e "+f0(kSow/kPct)+" kg/ha de "+kName+" ("+f0(kSow)+" kg K₂O) no sulco, com "+f0(nSow/nPct)+" kg/ha de "+nName+" se a fonte de P não trouxer N suficiente.");
+    if(nCov>0.5){
+      var parts=S.tex==="arenosa"?2:1;
+      plan.push("<b>Cobertura de N:</b> "+f0(nCov/nPct)+" kg/ha de "+nName+" ("+f0(nCov)+" kg N), "+(parts===2?"dividido em duas passadas, aos 20 e 35 dias após a emergência (solo arenoso perde N por lixiviação).":"entre 20 e 30 dias após a emergência, com umidade no solo."));
+    }
+    if(kCov>0.5) plan.push("<b>Cobertura de K:</b> "+f0(kCov/kPct)+" kg/ha de "+kName+" ("+f0(kCov)+" kg K₂O) junto com o N, para não queimar a semente.");
+    if(S.age==="nova") plan.push("Área nova: confirme a correção de acidez (calagem) e a necessidade de gessagem antes do plantio.");
+    $("plan").innerHTML=plan.map(function(p){return "<li>"+p+"</li>"}).join("");
+
+    // Avisos
+    var w=[];
+    if(!t) w.push("Informe a produtividade esperada para calcular.");
+    if(t>10) w.push("Produtividade acima de 10 t/ha é pouco comum para sorgo granífero. Confira o valor digitado.");
+    if(P===0&&needP>0) w.push("O residual da 1ª safra já cobre o fósforo exigido. Considere apenas a reposição da exportação.");
+    if(K===0&&needK>0) w.push("O residual da 1ª safra já cobre o potássio exigido. Considere apenas a reposição da exportação.");
+    var wb=$("warn"); wb.hidden=!w.length; wb.innerHTML=w.join("<br>");
+
+    // Memória
+    var m=[
+      ["Produtividade",f1(t)+" t/ha"],
+      ["N: extração ("+f1(num("eN"))+" kg/t)",f0(needN)+" kg/ha"],
+      ["N: fornecido pelo solo ("+Math.round(NSOIL[S.fert]*100)+"% pela fertilidade "+S.fert+")","− "+f0(soilN)+" kg/ha"],
+      ["N: aproveitamento do adubo ("+f1(num("fN"))+" × fator textura "+tx.N+")",effN.toFixed(2)],
+      ["N: crédito da cultura anterior","− "+f0(credPrev)+" kg/ha"],
+      ["N: contido na fonte de P (MAP)","− "+f0(nFromP)+" kg/ha"],
+      ["P₂O₅: a repor (fertilidade "+S.fert+"; extração "+f1(num("eP"))+", exportação "+f1(num("xP"))+" kg/t)",f0(needP)+" kg/ha"],
+      ["P₂O₅: acréscimo de construção","+ "+f0(buildP)+" kg/ha"],
+      ["P₂O₅: aproveitamento ("+f1(num("fP"))+" × textura "+tx.P+" × área "+ag.P+")",effP.toFixed(2)],
+      ["P₂O₅: residual da 1ª safra","− "+f0(resP)+" kg/ha"],
+      ["K₂O: a repor (fertilidade "+S.fert+"; extração "+f1(num("eK"))+", exportação "+f1(num("xK"))+" kg/t)",f0(needK)+" kg/ha"],
+      ["K₂O: acréscimo de construção","+ "+f0(buildK)+" kg/ha"],
+      ["K₂O: aproveitamento ("+f1(num("fK"))+" × textura "+tx.K+")",effK.toFixed(2)],
+      ["K₂O: residual da 1ª safra","− "+f0(resK)+" kg/ha"]
+    ];
+    $("memo").innerHTML=m.map(function(r){return "<tr><td>"+r[0]+"</td><td class='n'>"+r[1]+"</td></tr>"}).join("");
+  }
+
+  document.querySelectorAll(".seg").forEach(function(seg){
+    seg.addEventListener("click",function(e){
+      var b=e.target.closest("button"); if(!b) return;
+      S[seg.dataset.key]=b.dataset.v;
+      seg.querySelectorAll("button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+      calc();
+    });
+  });
+  document.querySelectorAll("input,select").forEach(function(el){el.addEventListener("input",calc);el.addEventListener("change",calc)});
+  calc();
+})();
+</script>
+
+</body>
+</html>
