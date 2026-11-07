@@ -71,6 +71,24 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 .warn[hidden]{display:none}
 .memo td:first-child{color:var(--muted)}
 .owner{display:inline-block;margin-top:10px;font-size:13px;font-weight:500;color:var(--accent);border-top:2px solid var(--accent);padding-top:6px}
+.pdfbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:24px}
+.pdfbtn{font:600 15px var(--f-body);background:var(--accent);color:var(--accent-fg);border:0;border-radius:8px;padding:12px 20px;cursor:pointer}
+.pdfbtn:hover{filter:brightness(1.08)}
+.pdfbtn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.pdfmsg{font-size:13px;color:var(--muted)}
+@media print{
+  :root:root:root{--bg:#fff;--surface:#fff;--surface2:#E4EBDF;--fg:#17261D;--muted:#566559;--line:#CBD6C6;--accent:#2D6A3E;--grain:#A8561E;--warn-bg:#FBEBD3;--warn-fg:#6B3A08;color-scheme:light}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{padding:0;font-size:12px}
+  .grid{display:block}
+  .grid>.stack:first-child,.pdfbar,header>p{display:none}
+  #printsummary{display:block!important}
+  #printsummary[hidden]{display:block!important}
+  .results{position:static}
+  section.panel{break-inside:avoid;margin-bottom:12px}
+  .foot{break-inside:avoid}
+  @page{size:A4;margin:14mm}
+}
 .foot{font-size:12px;color:var(--muted);margin-top:20px;max-width:80ch}
 </style>
 
@@ -207,6 +225,10 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 </div>
 
 <div class="stack results">
+  <section class="panel" id="printsummary" hidden>
+    <h2>Dados informados</h2>
+    <div class="scroll"><table class="memo"><tbody id="psum"></tbody></table></div>
+  </section>
   <section class="panel">
     <h2>Adubação recomendada</h2>
     <div class="tiles">
@@ -240,6 +262,11 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 </div>
 
 <p class="foot"><b>Esta ferramenta pertence a Mileide Souza, Engenheira Agrônoma.</b> Extração e exportação: Resende et al., Revista Brasileira de Milho e Sorgo, 2022. O sorgo absorve a maior parte dos nutrientes até o florescimento (N 83%, P₂O₅ 100%, K₂O 80%), por isso o adubo deve ir cedo. Ferramenta de apoio ao planejamento. Os fatores de textura, fertilidade e área nova são valores de referência de uso geral e devem ser confirmados com a recomendação regional e o agrônomo responsável, com base na análise de solo da área.</p>
+<div class="pdfbar">
+  <button type="button" class="pdfbtn" id="pdfbtn">Exportar resultado em PDF</button>
+  <span class="pdfmsg">Na janela que abrir, escolha "Salvar como PDF" como destino.</span>
+</div>
+
 </div>
 
 <script>
@@ -354,5 +381,31 @@ td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabula
 })();
 </script>
 
+
+
+<script>
+(function(){
+  function t(id){var e=document.getElementById(id);return e?e.value.trim():""}
+  function sel(id){var e=document.getElementById(id);return e.options[e.selectedIndex].text}
+  function seg(k){var b=document.querySelector('.seg[data-key="'+k+'"] button[aria-pressed="true"]');return b?b.textContent:""}
+  function fill(){
+    var r=[
+      ["Produtividade esperada",t("yield")+" "+sel("yunit")+" ("+document.getElementById("yeq").textContent.replace(/^=\s*/,"= ")+")"],
+      ["Área a adubar",t("area")+" ha"],
+      ["Fertilidade do solo",seg("fert")],["Textura do solo",seg("tex")],["Idade da área",seg("age")],
+      ["Cultura da 1ª safra",sel("prev")],
+      ["P₂O₅ / K₂O aplicados na 1ª safra",(t("p1")||"0")+" / "+(t("k1")||"0")+" kg/ha"],
+      ["Fração residual de P₂O₅ / K₂O",(t("pres")||"0")+"% / "+(t("kres")||"0")+"%"]
+    ];
+    if(t("pman")||t("kman")) r.push(["Saldo medido de P₂O₅ / K₂O",(t("pman")||"-")+" / "+(t("kman")||"-")+" kg/ha"]);
+    r.push(["Gerado em",new Date().toLocaleDateString("pt-BR")]);
+    document.getElementById("psum").innerHTML=r.map(function(x){return "<tr><td>"+x[0]+"</td><td class='n'>"+x[1]+"</td></tr>"}).join("");
+  }
+  var opened=[];
+  window.addEventListener("beforeprint",function(){fill();opened=[];document.querySelectorAll(".results details").forEach(function(d){if(!d.open){d.open=true;opened.push(d)}})});
+  window.addEventListener("afterprint",function(){opened.forEach(function(d){d.open=false});opened=[]});
+  document.getElementById("pdfbtn").addEventListener("click",function(){window.print()});
+})();
+</script>
 </body>
 </html>
